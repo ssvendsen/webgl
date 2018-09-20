@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+			body {
+				background-color: #ffffff;
+				margin: 0;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r82/three.min.js"></script>
+		<script>
+
+			var camera, scene, renderer;
+			var geometry, material, mesh;
+
+			var init = function() {
+				CUBE_HEIGHT = 300;
+
+				renderer = new THREE.WebGLRenderer({alpha:true});
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				document.body.appendChild(renderer.domElement);
+
+				// Set camera above cube
+				camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
+				camera.position.z = CUBE_HEIGHT * 2;
+
+				scene = new THREE.Scene();
+				
+				// Create cube
+				cubeMaterial = new THREE.MeshBasicMaterial({color: 0x1abc9c, side: THREE.DoubleSide});
+				cubeMaterialOutline = new THREE.MeshBasicMaterial({color: 0x000000});
+				cubeGeometry = new THREE.BoxGeometry(200, 200, 200);
+				cubeMesh = new THREE.Mesh( cubeGeometry, new THREE.MeshFaceMaterial([cubeMaterial, cubeMaterial, cubeMaterialOutline, cubeMaterialOutline, cubeMaterial, cubeMaterial]));
+				cubeMesh.position.z = CUBE_HEIGHT;
+				
+				scene.add(cubeMesh);
+
+				// Create skybox
+				var urlPrefix = "https://raw.githubusercontent.com/ssvendsen/webgl/master/";
+				var directions  = ["left", "right", "nothing", "nothing", "front", "back"];
+				var imageSuffix = ".jpg";
+				var skyGeometry = new THREE.BoxGeometry(15000, 15000, 15000);
+				
+				var materialArray = [];
+				for (var i = 0; i < 6; i++) {
+					materialArray.push(new THREE.MeshBasicMaterial({
+						map: THREE.ImageUtils.loadTexture(urlPrefix + directions[i] + imageSuffix),
+						side: THREE.BackSide
+					}));
+				}
+				var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
+				var skyBoxMesh = new THREE.Mesh(skyGeometry, skyMaterial);
+				
+				scene.add(skyBoxMesh);
+
+			}
+
+			var animate = function() {
+
+				requestAnimationFrame(animate);
+				
+				var t = Date.now() / 1000;
+				
+				// Rotate cube slightly
+				cubeMesh.rotation.x = -2 * Math.sin(t * 0.5);
+				cubeMesh.rotation.y = -2 * Math.cos(t * 0.75);
+				cubeMesh.rotation.z = -2 * Math.cos(t * 0.75);
+				
+				camera.position.x = 200 * Math.cos(t);
+				camera.position.y = 200 * Math.sin(t);
+				
+				// Point the camera towards the cube
+				camera.lookAt(cubeMesh.position);
+ 
+				renderer.render(scene, camera);
+			}
+
+			init();
+			animate();
+
+		</script>
+	</body>
+</html>
